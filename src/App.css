@@ -427,16 +427,70 @@
 
   margin-bottom: 24px;
 
-  color: #746d66;
+  color: #8a4c31;
 
   font-weight: 600;
+
+  transition: color 0.2s;
 }
 
 .back-link:hover {
-  color: #302a26;
+  color: #6f3c27;
 }
 
+
+/* Entire detail card */
+
 .detail-card {
+  padding: 24px 28px 28px;
+
+  background-color: #ffffff;
+
+  border: 1px solid #e5dfd7;
+  border-radius: 28px;
+}
+
+
+/* =========================================
+   DETAIL PREVIOUS / NEXT
+========================================= */
+
+.detail-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+
+  border-bottom: 1px solid #eee9e3;
+}
+
+.detail-nav-link {
+  color: #8a4c31;
+
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  transition: color 0.2s;
+}
+
+.detail-nav-link:hover {
+  color: #6f3c27;
+}
+
+.detail-nav-link.disabled {
+  color: #b8b0a8;
+
+  cursor: default;
+}
+
+
+/* =========================================
+   DETAIL CONTENT
+========================================= */
+
+.detail-body {
   display: grid;
 
   grid-template-columns:
@@ -444,13 +498,6 @@
     1.1fr;
 
   gap: 45px;
-
-  padding: 28px;
-
-  background-color: #ffffff;
-
-  border: 1px solid #e5dfd7;
-  border-radius: 28px;
 }
 
 .detail-image {
@@ -498,6 +545,11 @@
   color: #746d66;
 }
 
+
+/* =========================================
+   INGREDIENTS
+========================================= */
+
 .ingredients {
   padding: 0;
   margin: 0;
@@ -512,8 +564,7 @@
 
   padding: 10px 0;
 
-  border-bottom:
-    1px solid #eee9e3;
+  border-bottom: 1px solid #eee9e3;
 }
 
 .ingredients li span:last-child {
@@ -522,58 +573,15 @@
   text-align: right;
 }
 
+
+/* =========================================
+   INSTRUCTIONS
+========================================= */
+
 .instructions {
   color: #5e5751;
 
   line-height: 1.7;
-}
-
-
-/* =========================================
-   PREVIOUS / NEXT
-========================================= */
-
-.detail-navigation {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-
-  margin-top: 20px;
-}
-
-.navigation-button {
-  display: inline-block;
-
-  padding: 11px 18px;
-
-  background-color: #302a26;
-  color: #ffffff;
-
-  border: none;
-  border-radius: 14px;
-
-  font-weight: 600;
-
-  transition:
-    background-color 0.2s,
-    transform 0.2s;
-}
-
-.navigation-button:hover {
-  background-color: #4a423c;
-
-  transform: translateY(-1px);
-}
-
-.navigation-button.disabled {
-  background-color: #d8d2cc;
-  color: #8d857e;
-
-  cursor: not-allowed;
-}
-
-.navigation-button.disabled:hover {
-  transform: none;
 }
 
 
@@ -606,7 +614,7 @@
   }
 
 
-  /* First row */
+  /* Primary toolbar */
 
   .toolbar-primary {
     flex-wrap: wrap;
@@ -617,7 +625,7 @@
   }
 
 
-  /* Second row */
+  /* Secondary toolbar */
 
   .toolbar-secondary {
     align-items: stretch;
@@ -627,23 +635,31 @@
   }
 
   .control-group {
-    justify-content:
-      space-between;
+    justify-content: space-between;
   }
 
   .control-group select {
     flex: 1;
+
     max-width: 70%;
   }
 
 
-  /* Details */
+  /* Detail view */
 
   .detail-card {
+    padding: 18px;
+  }
+
+  .detail-navigation {
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+  }
+
+  .detail-body {
     grid-template-columns: 1fr;
 
     gap: 25px;
-    padding: 18px;
   }
 
 

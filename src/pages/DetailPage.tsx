@@ -9,10 +9,12 @@ import { getCocktailById } from "../services/cocktailApi";
 import { getNavigationList } from "../utils/navigation";
 import type { Cocktail } from "../types/Cocktail";
 
+
 interface Ingredient {
   name: string;
   measure: string;
 }
+
 
 function DetailPage() {
   const { id } = useParams();
@@ -20,13 +22,17 @@ function DetailPage() {
   const [cocktail, setCocktail] =
     useState<Cocktail | null>(null);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [loading, setLoading] =
+    useState(true);
 
-  /*
-   * Load the cocktail whenever the ID in the URL
-   * changes.
-   */
+  const [error, setError] =
+    useState("");
+
+
+  /* =========================================
+     LOAD COCKTAIL
+  ========================================= */
+
   useEffect(() => {
     async function loadCocktail() {
       if (!id) {
@@ -63,6 +69,11 @@ function DetailPage() {
     loadCocktail();
   }, [id]);
 
+
+  /* =========================================
+     LOADING
+  ========================================= */
+
   if (loading) {
     return (
       <p className="status">
@@ -71,11 +82,18 @@ function DetailPage() {
     );
   }
 
+
+  /* =========================================
+     ERROR
+  ========================================= */
+
   if (error || !cocktail) {
     return (
       <main className="page">
         <div className="empty-state">
-          <h1>Cocktail not found</h1>
+          <h1>
+            Cocktail not found
+          </h1>
 
           <p>
             {error ||
@@ -84,19 +102,26 @@ function DetailPage() {
 
           <Link
             to="/"
-            className="navigation-button"
+            className="back-link"
           >
-            Back to search
+            ← Back to search
           </Link>
         </div>
       </main>
     );
   }
 
+
+  /* =========================================
+     INGREDIENTS
+  ========================================= */
+
   /*
-   * The API stores ingredients as strIngredient1,
-   * strIngredient2, etc. Build an easier array from
-   * those properties.
+   * CocktailDB stores ingredients as
+   * strIngredient1, strIngredient2, etc.
+   *
+   * Convert those properties into an array
+   * that is easier to display.
    */
   const ingredients: Ingredient[] = [];
 
@@ -110,143 +135,167 @@ function DetailPage() {
     if (ingredient?.trim()) {
       ingredients.push({
         name: ingredient.trim(),
-        measure: measure?.trim() ?? "",
+        measure:
+          measure?.trim() ?? "",
       });
     }
   }
 
+
+  /* =========================================
+     PREVIOUS / NEXT
+  ========================================= */
+
   /*
-   * Find this cocktail inside the collection that
-   * the user originally clicked from.
+   * Get the IDs from the search results
+   * or gallery that the user came from.
    */
-  const navigationIds = getNavigationList();
+  const navigationIds =
+    getNavigationList();
 
   const currentIndex =
-    navigationIds.indexOf(cocktail.idDrink);
+    navigationIds.indexOf(
+      cocktail.idDrink
+    );
 
   const previousId =
     currentIndex > 0
-      ? navigationIds[currentIndex - 1]
+      ? navigationIds[
+          currentIndex - 1
+        ]
       : null;
 
   const nextId =
     currentIndex >= 0 &&
-    currentIndex < navigationIds.length - 1
-      ? navigationIds[currentIndex + 1]
+    currentIndex <
+      navigationIds.length - 1
+      ? navigationIds[
+          currentIndex + 1
+        ]
       : null;
+
 
   return (
     <main className="page">
-      <Link to="/" className="back-link">
+      <Link
+        to="/"
+        className="back-link"
+      >
         ← Back to search
       </Link>
 
       <div className="detail-card">
-        <img
-          className="detail-image"
-          src={`${cocktail.strDrinkThumb}/large`}
-          alt={cocktail.strDrink}
-        />
+        <div className="detail-navigation">
+          {previousId ? (
+            <Link
+              className="detail-nav-link"
+              to={`/cocktails/${previousId}`}
+            >
+              ← Previous
+            </Link>
+          ) : (
+            <span className="detail-nav-link disabled">
+              ← Previous
+            </span>
+          )}
 
-        <div className="detail-content">
-          <div className="detail-tags">
-            {cocktail.strCategory && (
-              <span className="tag">
-                {cocktail.strCategory}
-              </span>
-            )}
-
-            {cocktail.strAlcoholic && (
-              <span className="tag">
-                {cocktail.strAlcoholic}
-              </span>
-            )}
-
-            {cocktail.strIBA && (
-              <span className="tag">
-                {cocktail.strIBA}
-              </span>
-            )}
-          </div>
-
-          <h1>{cocktail.strDrink}</h1>
-
-          <p className="glass">
-            Served in{" "}
-            <strong>
-              {cocktail.strGlass ||
-                "an unspecified glass"}
-            </strong>
-          </p>
-
-          <section>
-            <h2>Ingredients</h2>
-
-            <ul className="ingredients">
-              {ingredients.map(
-                (ingredient, index) => (
-                  <li
-                    key={`${ingredient.name}-${index}`}
-                  >
-                    <span>
-                      {ingredient.name}
-                    </span>
-
-                    <span>
-                      {ingredient.measure}
-                    </span>
-                  </li>
-                )
-              )}
-            </ul>
-          </section>
-
-          <section>
-            <h2>Instructions</h2>
-
-            <p className="instructions">
-              {cocktail.strInstructions ||
-                "No instructions available."}
-            </p>
-          </section>
+          {nextId ? (
+            <Link
+              className="detail-nav-link"
+              to={`/cocktails/${nextId}`}
+            >
+              Next →
+            </Link>
+          ) : (
+            <span className="detail-nav-link disabled">
+              Next →
+            </span>
+          )}
         </div>
-      </div>
 
-      <div className="detail-navigation">
-        {previousId ? (
-          <Link
-            className="navigation-button"
-            to={`/cocktails/${previousId}`}
-          >
-            ← Previous
-          </Link>
-        ) : (
-          <button
-            className="navigation-button disabled"
-            disabled
-          >
-            ← Previous
-          </button>
-        )}
+        <div className="detail-body">
+          <img
+            className="detail-image"
+            src={`${cocktail.strDrinkThumb}/large`}
+            alt={cocktail.strDrink}
+          />
 
-        {nextId ? (
-          <Link
-            className="navigation-button"
-            to={`/cocktails/${nextId}`}
-          >
-            Next →
-          </Link>
-        ) : (
-          <button
-            className="navigation-button disabled"
-            disabled
-          >
-            Next →
-          </button>
-        )}
+          <div className="detail-content">
+            <div className="detail-tags">
+              {cocktail.strCategory && (
+                <span className="tag">
+                  {cocktail.strCategory}
+                </span>
+              )}
+
+              {cocktail.strAlcoholic && (
+                <span className="tag">
+                  {cocktail.strAlcoholic}
+                </span>
+              )}
+
+              {cocktail.strIBA && (
+                <span className="tag">
+                  {cocktail.strIBA}
+                </span>
+              )}
+            </div>
+
+            <h1>
+              {cocktail.strDrink}
+            </h1>
+
+            <p className="glass">
+              Served in{" "}
+              <strong>
+                {cocktail.strGlass ||
+                  "an unspecified glass"}
+              </strong>
+            </p>
+
+            <section>
+              <h2>
+                Ingredients
+              </h2>
+
+              <ul className="ingredients">
+                {ingredients.map(
+                  (
+                    ingredient,
+                    index
+                  ) => (
+                    <li
+                      key={`${ingredient.name}-${index}`}
+                    >
+                      <span>
+                        {ingredient.name}
+                      </span>
+
+                      <span>
+                        {ingredient.measure}
+                      </span>
+                    </li>
+                  )
+                )}
+              </ul>
+            </section>
+
+            <section>
+              <h2>
+                Instructions
+              </h2>
+
+              <p className="instructions">
+                {cocktail.strInstructions ||
+                  "No instructions available."}
+              </p>
+            </section>
+          </div>
+        </div>
       </div>
     </main>
   );
 }
+
 
 export default DetailPage;
