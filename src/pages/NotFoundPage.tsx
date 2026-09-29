@@ -5,7 +5,7 @@ function NotFoundPage() {
   return (
     <main className="page">
       <div className="empty-state">
-        <p className="eyebrow">
+        <p className="page-label">
           404
         </p>
 

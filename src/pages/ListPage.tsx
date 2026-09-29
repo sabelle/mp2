@@ -11,6 +11,7 @@ import {
 
 import CocktailListItem from "../components/CocktailListItem";
 import CocktailCard from "../components/CocktailCard";
+import PageHeader from "../components/PageHeader";
 
 import {
   getCategories,
@@ -383,22 +384,8 @@ function ListPage() {
           : "page"
       }
     >
-      <div className="page-header">
-        <p className="eyebrow">
-          Discover your next drink
-        </p>
-
-        <h1>
-          Cocktail Explorer
-        </h1>
-
-        <p className="subtitle">
-          Search, sort, and browse cocktail
-          recipes from around the world.
-        </p>
-      </div>
-
-
+      <PageHeader />
+      
       <div className="toolbar-primary">
         <input
           className="search-input"

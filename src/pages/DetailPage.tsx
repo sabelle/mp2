@@ -9,6 +9,7 @@ import {
   useParams,
 } from "react-router-dom";
 
+import PageHeader from "../components/PageHeader";
 import { getCocktailById } from "../services/cocktailApi";
 import { getNavigationList } from "../utils/navigation";
 import type { Cocktail } from "../types/Cocktail";
@@ -123,6 +124,7 @@ function DetailPage() {
   if (loading && !cocktail) {
     return (
       <main className="page">
+        <PageHeader />
         <p className="status">
           Loading cocktail...
         </p>
@@ -138,6 +140,7 @@ function DetailPage() {
   if (error || !cocktail) {
     return (
       <main className="page">
+        <PageHeader />
         <div className="empty-state">
           <h1>
             Cocktail not found
@@ -235,6 +238,8 @@ function DetailPage() {
 
   return (
     <main className="page">
+      <PageHeader />
+
       <Link
         to={{
           pathname: "/",
