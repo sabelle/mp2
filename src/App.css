@@ -5,6 +5,27 @@
 .page {
   width: min(1100px, calc(100% - 40px));
   margin: 70px auto;
+
+  opacity: 1;
+
+  animation: fade-in 0.2s ease;
+
+  transition:
+    opacity 0.2s ease;
+}
+
+.page.page-transitioning {
+  opacity: 0.35;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0.35;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .page-header {
@@ -68,6 +89,11 @@
   border-radius: 14px;
 
   outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .search-input::placeholder {
@@ -106,8 +132,9 @@
   border-radius: 14px;
 
   transition:
-    background-color 0.2s,
-    border-color 0.2s;
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .icon-button:hover {
@@ -118,6 +145,9 @@
 .icon-button svg {
   width: 20px;
   height: 20px;
+
+  transition:
+    opacity 0.2s ease;
 }
 
 
@@ -154,9 +184,10 @@
   border-radius: 10px;
 
   transition:
-    background-color 0.2s,
-    color 0.2s,
-    box-shadow 0.2s;
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .view-button:hover {
@@ -223,6 +254,11 @@
   border-radius: 11px;
 
   outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .control-group select:focus {
@@ -231,6 +267,22 @@
   box-shadow:
     0 0 0 3px
     rgba(160, 91, 59, 0.1);
+}
+
+
+/* =========================================
+   RESULTS TRANSITION
+========================================= */
+
+.results-area {
+  opacity: 1;
+
+  transition:
+    opacity 0.2s ease;
+}
+
+.results-area.transitioning {
+  opacity: 0.35;
 }
 
 
@@ -261,6 +313,8 @@
 
   border: 1px solid #e5ded6;
   border-radius: 22px;
+
+  animation: fade-in 0.2s ease;
 }
 
 .empty-state h1,
@@ -274,6 +328,22 @@
   margin-bottom: 24px;
 
   color: #746d66;
+}
+
+
+/* =========================================
+   LIST / GALLERY BUTTON RESET
+========================================= */
+
+.list-item,
+.cocktail-card {
+  width: 100%;
+
+  color: inherit;
+  font: inherit;
+  text-align: left;
+
+  cursor: pointer;
 }
 
 
@@ -300,14 +370,12 @@
   border-radius: 18px;
 
   transition:
-    transform 0.2s,
-    box-shadow 0.2s,
-    border-color 0.2s;
+    opacity 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .list-item:hover {
-  transform: translateY(-2px);
-
   border-color: #d6cec5;
 
   box-shadow:
@@ -377,20 +445,23 @@
 .cocktail-card {
   overflow: hidden;
 
+  display: flex;
+  flex-direction: column;
+
+  padding: 0;
+
   background-color: #ffffff;
 
   border: 1px solid #e5dfd7;
   border-radius: 22px;
 
   transition:
-    transform 0.2s,
-    box-shadow 0.2s,
-    border-color 0.2s;
+    opacity 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .cocktail-card:hover {
-  transform: translateY(-4px);
-
   border-color: #d6cec5;
 
   box-shadow:
@@ -402,12 +473,18 @@
   display: block;
 
   width: 100%;
-  aspect-ratio: 1;
+  height: 100%;
+
+  flex: 1;
+
+  min-height: 0;
 
   object-fit: cover;
 }
 
 .card-content {
+  flex-shrink: 0;
+
   padding: 17px;
 }
 
@@ -416,7 +493,6 @@
 
   font-size: 1.05rem;
 }
-
 
 /* =========================================
    DETAIL VIEW
@@ -431,7 +507,9 @@
 
   font-weight: 600;
 
-  transition: color 0.2s;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .back-link:hover {
@@ -439,7 +517,26 @@
 }
 
 
-/* Entire detail card */
+/* =========================================
+   DETAIL SEARCH CONTEXT
+========================================= */
+
+.detail-context {
+  margin: -14px 0 24px;
+}
+
+.detail-search-context {
+  margin: 0;
+
+  color: #746d66;
+
+  font-size: 0.95rem;
+}
+
+
+/* =========================================
+   DETAIL CARD
+========================================= */
 
 .detail-card {
   padding: 24px 28px 28px;
@@ -448,6 +545,15 @@
 
   border: 1px solid #e5dfd7;
   border-radius: 28px;
+
+  opacity: 1;
+
+  transition:
+    opacity 0.2s ease;
+}
+
+.detail-card.transitioning {
+  opacity: 0.35;
 }
 
 
@@ -472,7 +578,9 @@
   font-size: 0.95rem;
   font-weight: 600;
 
-  transition: color 0.2s;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .detail-nav-link:hover {
@@ -595,6 +703,8 @@
   text-align: center;
 
   color: #746d66;
+
+  animation: fade-in 0.2s ease;
 }
 
 .error {
@@ -645,7 +755,7 @@
   }
 
 
-  /* Detail view */
+  /* Detail */
 
   .detail-card {
     padding: 18px;
@@ -685,5 +795,20 @@
   .list-item img {
     width: 70px;
     height: 70px;
+  }
+}
+
+
+/* =========================================
+   REDUCED MOTION
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

@@ -4,6 +4,11 @@ import {
   useState,
 } from "react";
 
+import {
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
+
 import CocktailListItem from "../components/CocktailListItem";
 import CocktailCard from "../components/CocktailCard";
 
@@ -14,14 +19,11 @@ import {
 
 import type { Cocktail } from "../types/Cocktail";
 
+
 type SortProperty = "name" | "category";
 type SortOrder = "asc" | "desc";
 type ViewMode = "list" | "gallery";
 
-
-/* =========================================
-   ICONS
-========================================= */
 
 function ListIcon() {
   return (
@@ -133,39 +135,125 @@ function DownArrowIcon() {
 }
 
 
-/* =========================================
-   LIST PAGE
-========================================= */
-
 function ListPage() {
-  const [viewMode, setViewMode] =
-    useState<ViewMode>("list");
+  const [searchParams, setSearchParams] =
+    useSearchParams();
+
+  const navigate = useNavigate();
 
   const [cocktails, setCocktails] =
     useState<Cocktail[]>([]);
 
-  const [query, setQuery] =
-    useState("");
-
-  const [sortProperty, setSortProperty] =
-    useState<SortProperty>("name");
-
-  const [sortOrder, setSortOrder] =
-    useState<SortOrder>("asc");
-
   const [categories, setCategories] =
     useState<string[]>([]);
-
-  const [
-    selectedCategory,
-    setSelectedCategory,
-  ] = useState("");
 
   const [loading, setLoading] =
     useState(false);
 
   const [error, setError] =
     useState("");
+
+  const [transitioning, setTransitioning] =
+    useState(false);
+
+  const [pageTransitioning, setPageTransitioning] =
+    useState(false);
+
+
+  /* =========================================
+     SEARCH STATE
+  ========================================= */
+
+  const query =
+    searchParams.get("q") ?? "";
+
+  const sortProperty: SortProperty =
+    searchParams.get("sort") === "category"
+      ? "category"
+      : "name";
+
+  const sortOrder: SortOrder =
+    searchParams.get("order") === "desc"
+      ? "desc"
+      : "asc";
+
+  const selectedCategory =
+    searchParams.get("category") ?? "";
+
+  const viewMode: ViewMode =
+    searchParams.get("view") === "gallery"
+      ? "gallery"
+      : "list";
+
+
+  /* =========================================
+     UPDATE SEARCH STATE
+  ========================================= */
+
+  function updateSearchParams(
+    updates: Record<string, string>
+  ) {
+    const newParams =
+      new URLSearchParams(searchParams);
+
+    Object.entries(updates).forEach(
+      ([key, value]) => {
+        if (value) {
+          newParams.set(key, value);
+        } else {
+          newParams.delete(key);
+        }
+      }
+    );
+
+    setSearchParams(
+      newParams,
+      {
+        replace: true,
+      }
+    );
+  }
+
+
+  /* =========================================
+     TRANSITION SEARCH STATE
+  ========================================= */
+
+  async function transitionSearchParams(
+    updates: Record<string, string>
+  ) {
+    setTransitioning(true);
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, 200)
+    );
+
+    updateSearchParams(updates);
+
+    setTransitioning(false);
+  }
+
+
+  /* =========================================
+     DETAIL NAVIGATION
+  ========================================= */
+
+  async function openCocktail(
+    cocktail: Cocktail
+  ) {
+    setPageTransitioning(true);
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, 200)
+    );
+
+    navigate({
+      pathname:
+        `/cocktails/${cocktail.idDrink}`,
+      search:
+        searchParams.toString(),
+    });
+  }
 
 
   /* =========================================
@@ -177,6 +265,7 @@ function ListPage() {
       setCocktails([]);
       setLoading(false);
       setError("");
+
       return;
     }
 
@@ -235,10 +324,6 @@ function ListPage() {
 
   const displayedCocktails =
     useMemo(() => {
-      /*
-       * First filter the search results by
-       * category if one is selected.
-       */
       const filtered =
         selectedCategory
           ? cocktails.filter(
@@ -248,17 +333,12 @@ function ListPage() {
             )
           : cocktails;
 
-      /*
-       * Then sort the filtered results.
-       */
       return [...filtered].sort(
         (a, b) => {
           let first: string;
           let second: string;
 
-          if (
-            sortProperty === "name"
-          ) {
+          if (sortProperty === "name") {
             first = a.strDrink;
             second = b.strDrink;
           } else {
@@ -285,33 +365,32 @@ function ListPage() {
     ]);
 
 
-  /* =========================================
-     SORT ORDER
-  ========================================= */
-
   function toggleSortOrder() {
-    setSortOrder(
-      (currentOrder) =>
-        currentOrder === "asc"
+    transitionSearchParams({
+      order:
+        sortOrder === "asc"
           ? "desc"
-          : "asc"
-    );
+          : "asc",
+    });
   }
 
 
-  /* =========================================
-     RENDER
-  ========================================= */
-
   return (
-    <main className="page">
-
+    <main
+      className={
+        pageTransitioning
+          ? "page page-transitioning"
+          : "page"
+      }
+    >
       <div className="page-header">
         <p className="eyebrow">
           Discover your next drink
         </p>
 
-        <h1>Cocktail Explorer</h1>
+        <h1>
+          Cocktail Explorer
+        </h1>
 
         <p className="subtitle">
           Search, sort, and browse cocktail
@@ -320,24 +399,18 @@ function ListPage() {
       </div>
 
 
-      {/* =====================================
-          FIRST TOOLBAR ROW
-      ====================================== */}
-
       <div className="toolbar-primary">
-
         <input
           className="search-input"
           type="search"
           placeholder="Search cocktails..."
           value={query}
           onChange={(event) =>
-            setQuery(
-              event.target.value
-            )
+            updateSearchParams({
+              q: event.target.value,
+            })
           }
         />
-
 
         <button
           className="icon-button"
@@ -361,7 +434,6 @@ function ListPage() {
           )}
         </button>
 
-
         <div
           className="view-toggle"
           aria-label="Choose view"
@@ -374,7 +446,9 @@ function ListPage() {
                 : "view-button"
             }
             onClick={() =>
-              setViewMode("list")
+              transitionSearchParams({
+                view: "list",
+              })
             }
             aria-label="List view"
             title="List view"
@@ -390,7 +464,9 @@ function ListPage() {
                 : "view-button"
             }
             onClick={() =>
-              setViewMode("gallery")
+              transitionSearchParams({
+                view: "gallery",
+              })
             }
             aria-label="Gallery view"
             title="Gallery view"
@@ -398,16 +474,10 @@ function ListPage() {
             <GridIcon />
           </button>
         </div>
-
       </div>
 
 
-      {/* =====================================
-          SECOND TOOLBAR ROW
-      ====================================== */}
-
       <div className="toolbar-secondary">
-
         <div className="control-group">
           <label htmlFor="sort-property">
             Sort by:
@@ -417,10 +487,10 @@ function ListPage() {
             id="sort-property"
             value={sortProperty}
             onChange={(event) =>
-              setSortProperty(
-                event.target
-                  .value as SortProperty
-              )
+              transitionSearchParams({
+                sort:
+                  event.target.value,
+              })
             }
           >
             <option value="name">
@@ -443,9 +513,10 @@ function ListPage() {
             id="category-filter"
             value={selectedCategory}
             onChange={(event) =>
-              setSelectedCategory(
-                event.target.value
-              )
+              transitionSearchParams({
+                category:
+                  event.target.value,
+              })
             }
           >
             <option value="">
@@ -464,149 +535,133 @@ function ListPage() {
             )}
           </select>
         </div>
-
       </div>
 
 
-      {/* =====================================
-          EMPTY SEARCH
-      ====================================== */}
-
-      {!query.trim() && (
-        <div className="empty-state">
-          <h2>
-            Search for a cocktail
-          </h2>
-
-          <p>
-            Start typing a cocktail
-            name above to see matching
-            drinks.
-          </p>
-        </div>
-      )}
-
-
-      {/* =====================================
-          LOADING
-      ====================================== */}
-
-      {loading && query.trim() && (
-        <p className="status">
-          Searching cocktails...
-        </p>
-      )}
-
-
-      {/* =====================================
-          ERROR
-      ====================================== */}
-
-      {error && (
-        <p className="status error">
-          {error}
-        </p>
-      )}
-
-
-      {/* =====================================
-          RESULTS
-      ====================================== */}
-
-      {!loading &&
-        !error &&
-        query.trim() &&
-        displayedCocktails.length >
-          0 && (
-          <>
-
-            <p className="result-count">
-              {
-                displayedCocktails.length
-              }{" "}
-              {displayedCocktails.length ===
-              1
-                ? "cocktail"
-                : "cocktails"}{" "}
-              found
-            </p>
-
-
-            {viewMode === "list" ? (
-
-              <div className="cocktail-list">
-
-                {displayedCocktails.map(
-                  (cocktail) => (
-                    <CocktailListItem
-                      key={
-                        cocktail.idDrink
-                      }
-                      cocktail={
-                        cocktail
-                      }
-                      navigationList={
-                        displayedCocktails
-                      }
-                    />
-                  )
-                )}
-
-              </div>
-
-            ) : (
-
-              <div className="gallery">
-
-                {displayedCocktails.map(
-                  (cocktail) => (
-                    <CocktailCard
-                      key={
-                        cocktail.idDrink
-                      }
-                      cocktail={
-                        cocktail
-                      }
-                      navigationList={
-                        displayedCocktails
-                      }
-                    />
-                  )
-                )}
-
-              </div>
-
-            )}
-
-          </>
-        )}
-
-
-      {/* =====================================
-          NO RESULTS
-      ====================================== */}
-
-      {!loading &&
-        !error &&
-        query.trim() &&
-        displayedCocktails.length ===
-          0 && (
+      <div
+        className={
+          transitioning
+            ? "results-area transitioning"
+            : "results-area"
+        }
+      >
+        {!query.trim() && (
           <div className="empty-state">
-
             <h2>
-              No cocktails found
+              Search for a cocktail
             </h2>
 
             <p>
-              Try a different search
-              or category.
+              Start typing a cocktail
+              name above to see matching
+              drinks.
             </p>
-
           </div>
         )}
 
+
+        {loading && query.trim() && (
+          <p className="status">
+            Searching cocktails...
+          </p>
+        )}
+
+
+        {error && (
+          <p className="status error">
+            {error}
+          </p>
+        )}
+
+
+        {!loading &&
+          !error &&
+          query.trim() &&
+          displayedCocktails.length >
+            0 && (
+            <>
+              <p className="result-count">
+                {
+                  displayedCocktails.length
+                }{" "}
+                {displayedCocktails.length ===
+                1
+                  ? "cocktail"
+                  : "cocktails"}{" "}
+                found
+              </p>
+
+              {viewMode === "list" ? (
+                <div className="cocktail-list">
+                  {displayedCocktails.map(
+                    (cocktail) => (
+                      <CocktailListItem
+                        key={
+                          cocktail.idDrink
+                        }
+                        cocktail={
+                          cocktail
+                        }
+                        navigationList={
+                          displayedCocktails
+                        }
+                        onOpen={() =>
+                          openCocktail(
+                            cocktail
+                          )
+                        }
+                      />
+                    )
+                  )}
+                </div>
+              ) : (
+                <div className="gallery">
+                  {displayedCocktails.map(
+                    (cocktail) => (
+                      <CocktailCard
+                        key={
+                          cocktail.idDrink
+                        }
+                        cocktail={
+                          cocktail
+                        }
+                        navigationList={
+                          displayedCocktails
+                        }
+                        onOpen={() =>
+                          openCocktail(
+                            cocktail
+                          )
+                        }
+                      />
+                    )
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+
+        {!loading &&
+          !error &&
+          query.trim() &&
+          displayedCocktails.length ===
+            0 && (
+            <div className="empty-state">
+              <h2>
+                No cocktails found
+              </h2>
+
+              <p>
+                Try a different search
+                or category.
+              </p>
+            </div>
+          )}
+      </div>
     </main>
   );
 }
+
 
 export default ListPage;

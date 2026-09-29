@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import {
   Link,
+  useLocation,
   useParams,
 } from "react-router-dom";
 
@@ -18,6 +22,7 @@ interface Ingredient {
 
 function DetailPage() {
   const { id } = useParams();
+  const location = useLocation();
 
   const [cocktail, setCocktail] =
     useState<Cocktail | null>(null);
@@ -28,6 +33,22 @@ function DetailPage() {
   const [error, setError] =
     useState("");
 
+  const [transitioning, setTransitioning] =
+    useState(false);
+
+
+  /* =========================================
+     SEARCH CONTEXT
+  ========================================= */
+
+  const searchParams =
+    new URLSearchParams(
+      location.search
+    );
+
+  const searchQuery =
+    searchParams.get("q") ?? "";
+
 
   /* =========================================
      LOAD COCKTAIL
@@ -36,8 +57,12 @@ function DetailPage() {
   useEffect(() => {
     async function loadCocktail() {
       if (!id) {
-        setError("Cocktail not found.");
+        setError(
+          "Cocktail not found."
+        );
+
         setLoading(false);
+
         return;
       }
 
@@ -45,22 +70,43 @@ function DetailPage() {
         setLoading(true);
         setError("");
 
+        if (cocktail) {
+          setTransitioning(true);
+        }
+
         const result =
           await getCocktailById(id);
 
         if (!result) {
           setCocktail(null);
-          setError("Cocktail not found.");
+
+          setError(
+            "Cocktail not found."
+          );
+
           return;
         }
 
+        if (cocktail) {
+          await new Promise(
+            (resolve) =>
+              setTimeout(
+                resolve,
+                200
+              )
+          );
+        }
+
         setCocktail(result);
+        setTransitioning(false);
       } catch {
         setCocktail(null);
 
         setError(
           "Unable to load this cocktail."
         );
+
+        setTransitioning(false);
       } finally {
         setLoading(false);
       }
@@ -74,11 +120,13 @@ function DetailPage() {
      LOADING
   ========================================= */
 
-  if (loading) {
+  if (loading && !cocktail) {
     return (
-      <p className="status">
-        Loading cocktail...
-      </p>
+      <main className="page">
+        <p className="status">
+          Loading cocktail...
+        </p>
+      </main>
     );
   }
 
@@ -101,7 +149,11 @@ function DetailPage() {
           </p>
 
           <Link
-            to="/"
+            to={{
+              pathname: "/",
+              search:
+                location.search,
+            }}
             className="back-link"
           >
             ← Back to search
@@ -127,14 +179,20 @@ function DetailPage() {
 
   for (let i = 1; i <= 15; i++) {
     const ingredient =
-      cocktail[`strIngredient${i}`];
+      cocktail[
+        `strIngredient${i}`
+      ];
 
     const measure =
-      cocktail[`strMeasure${i}`];
+      cocktail[
+        `strMeasure${i}`
+      ];
 
     if (ingredient?.trim()) {
       ingredients.push({
-        name: ingredient.trim(),
+        name:
+          ingredient.trim(),
+
         measure:
           measure?.trim() ?? "",
       });
@@ -178,18 +236,43 @@ function DetailPage() {
   return (
     <main className="page">
       <Link
-        to="/"
+        to={{
+          pathname: "/",
+          search: location.search,
+        }}
         className="back-link"
       >
         ← Back to search
       </Link>
 
-      <div className="detail-card">
+      <div className="detail-context">
+        {searchQuery && (
+          <p className="detail-search-context">
+            Results for{" "}
+            <strong>
+              "{searchQuery}"
+            </strong>
+          </p>
+        )}
+      </div>
+
+      <div
+        className={
+          transitioning
+            ? "detail-card transitioning"
+            : "detail-card"
+        }
+      >
         <div className="detail-navigation">
           {previousId ? (
             <Link
               className="detail-nav-link"
-              to={`/cocktails/${previousId}`}
+              to={{
+                pathname:
+                  `/cocktails/${previousId}`,
+                search:
+                  location.search,
+              }}
             >
               ← Previous
             </Link>
@@ -202,7 +285,12 @@ function DetailPage() {
           {nextId ? (
             <Link
               className="detail-nav-link"
-              to={`/cocktails/${nextId}`}
+              to={{
+                pathname:
+                  `/cocktails/${nextId}`,
+                search:
+                  location.search,
+              }}
             >
               Next →
             </Link>
@@ -216,27 +304,37 @@ function DetailPage() {
         <div className="detail-body">
           <img
             className="detail-image"
-            src={`${cocktail.strDrinkThumb}/large`}
-            alt={cocktail.strDrink}
+            src={
+              cocktail.strDrinkThumb
+            }
+            alt={
+              cocktail.strDrink
+            }
           />
 
           <div className="detail-content">
             <div className="detail-tags">
               {cocktail.strCategory && (
                 <span className="tag">
-                  {cocktail.strCategory}
+                  {
+                    cocktail.strCategory
+                  }
                 </span>
               )}
 
               {cocktail.strAlcoholic && (
                 <span className="tag">
-                  {cocktail.strAlcoholic}
+                  {
+                    cocktail.strAlcoholic
+                  }
                 </span>
               )}
 
               {cocktail.strIBA && (
                 <span className="tag">
-                  {cocktail.strIBA}
+                  {
+                    cocktail.strIBA
+                  }
                 </span>
               )}
             </div>
@@ -268,11 +366,15 @@ function DetailPage() {
                       key={`${ingredient.name}-${index}`}
                     >
                       <span>
-                        {ingredient.name}
+                        {
+                          ingredient.name
+                        }
                       </span>
 
                       <span>
-                        {ingredient.measure}
+                        {
+                          ingredient.measure
+                        }
                       </span>
                     </li>
                   )
