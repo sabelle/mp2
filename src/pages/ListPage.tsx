@@ -29,10 +29,7 @@ type ViewMode = "list" | "gallery";
 
 function ListIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
         fill="none"
@@ -47,10 +44,7 @@ function ListIcon() {
 
 function GridIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
       <rect
         x="3"
         y="3"
@@ -61,7 +55,6 @@ function GridIcon() {
         stroke="currentColor"
         strokeWidth="2"
       />
-
       <rect
         x="14"
         y="3"
@@ -72,7 +65,6 @@ function GridIcon() {
         stroke="currentColor"
         strokeWidth="2"
       />
-
       <rect
         x="3"
         y="14"
@@ -83,7 +75,6 @@ function GridIcon() {
         stroke="currentColor"
         strokeWidth="2"
       />
-
       <rect
         x="14"
         y="14"
@@ -101,10 +92,7 @@ function GridIcon() {
 
 function UpArrowIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M12 19V5M6 11l6-6 6 6"
         fill="none"
@@ -120,10 +108,7 @@ function UpArrowIcon() {
 
 function DownArrowIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M12 5v14M6 13l6 6 6-6"
         fill="none"
@@ -164,11 +149,11 @@ function ListPage() {
   const [transitioning, setTransitioning] =
     useState(false);
 
-  const [
-    pageTransitioning,
-    setPageTransitioning,
-  ] = useState(false);
+  const [pageTransitioning, setPageTransitioning] =
+    useState(false);
 
+
+  /* Read search, sort, filter, and view settings from the URL. */
 
   const query =
     searchParams.get("q") ?? "";
@@ -195,6 +180,8 @@ function ListPage() {
       : "list";
 
 
+  /* Update one or more settings in the URL. */
+
   function updateSearchParams(
     updates: Record<string, string>
   ) {
@@ -213,12 +200,12 @@ function ListPage() {
 
     setSearchParams(
       newParams,
-      {
-        replace: true,
-      }
+      { replace: true }
     );
   }
 
+
+  /* Fade results before changing a sort, filter, or view setting. */
 
   async function transitionSearchParams(
     updates: Record<string, string>
@@ -234,6 +221,8 @@ function ListPage() {
     setTransitioning(false);
   }
 
+
+  /* Fade the page before opening a cocktail. */
 
   async function openCocktail(
     cocktail: Cocktail
@@ -258,7 +247,7 @@ function ListPage() {
   }
 
 
-  /* Load random cocktails once */
+  /* Load and save six random cocktails for the home page. */
 
   useEffect(() => {
     async function loadRandomCocktails() {
@@ -277,7 +266,6 @@ function ListPage() {
           );
 
           setRandomLoading(false);
-
           return;
         } catch {
           sessionStorage.removeItem(
@@ -300,9 +288,7 @@ function ListPage() {
 
         const validCocktails =
           results.filter(
-            (
-              cocktail
-            ): cocktail is Cocktail =>
+            (cocktail): cocktail is Cocktail =>
               cocktail !== null
           );
 
@@ -324,9 +310,7 @@ function ListPage() {
 
         sessionStorage.setItem(
           "randomCocktails",
-          JSON.stringify(
-            uniqueCocktails
-          )
+          JSON.stringify(uniqueCocktails)
         );
       } catch {
         setError(
@@ -341,13 +325,12 @@ function ListPage() {
   }, []);
 
 
-  /* Search cocktails */
+  /* Search for cocktails after the user stops typing for 300ms. */
 
   useEffect(() => {
     if (!query.trim()) {
       setCocktails([]);
       setLoading(false);
-
       return;
     }
 
@@ -378,7 +361,7 @@ function ListPage() {
   }, [query]);
 
 
-  /* Load categories */
+  /* Load category options for the filter. */
 
   useEffect(() => {
     async function loadCategories() {
@@ -398,10 +381,7 @@ function ListPage() {
   }, []);
 
 
-  /*
-   * Use search results when there is a query.
-   * Otherwise use the random home-page cocktails.
-   */
+  /* Show search results when searching, otherwise show random drinks. */
 
   const sourceCocktails =
     query.trim()
@@ -409,7 +389,7 @@ function ListPage() {
       : randomCocktails;
 
 
-  /* Filter and sort */
+  /* Apply the selected filters and sorting. */
 
   const displayedCocktails =
     useMemo(() => {
@@ -435,27 +415,25 @@ function ListPage() {
 
       return [...filtered].sort(
         (a, b) => {
+          const direction =
+            sortOrder === "asc"
+              ? 1
+              : -1;
+
           const nameComparison =
             a.strDrink.localeCompare(
               b.strDrink
             );
 
-          /*
-           * Ascending / descending always
-           * controls cocktail name order.
-           */
           if (sortProperty === "name") {
-            return sortOrder === "asc"
-              ? nameComparison
-              : -nameComparison;
+            return (
+              nameComparison *
+              direction
+            );
           }
 
-          /*
-           * When sorting by category,
-           * category is the primary sort.
-           * Cocktails within each category
-           * are sorted by name.
-           */
+          /* Sort by category first, then cocktail name. */
+
           const categoryComparison =
             (
               a.strCategory ?? ""
@@ -463,15 +441,17 @@ function ListPage() {
               b.strCategory ?? ""
             );
 
-          if (
-            categoryComparison !== 0
-          ) {
-            return categoryComparison;
+          if (categoryComparison !== 0) {
+            return (
+              categoryComparison *
+              direction
+            );
           }
 
-          return sortOrder === "asc"
-            ? nameComparison
-            : -nameComparison;
+          return (
+            nameComparison *
+            direction
+          );
         }
       );
     }, [
@@ -508,7 +488,6 @@ function ListPage() {
       }
     >
       <PageHeader />
-
 
       <div className="toolbar-primary">
         <input
@@ -587,7 +566,6 @@ function ListPage() {
         </div>
       </div>
 
-
       <div className="toolbar-secondary">
         <div className="control-group">
           <label htmlFor="sort-property">
@@ -613,7 +591,6 @@ function ListPage() {
             </option>
           </select>
         </div>
-
 
         <div className="control-group">
           <label htmlFor="category-filter">
@@ -647,7 +624,6 @@ function ListPage() {
           </select>
         </div>
 
-
         <div className="control-group">
           <label htmlFor="alcoholic-filter">
             Type:
@@ -678,7 +654,6 @@ function ListPage() {
         </div>
       </div>
 
-
       <div
         className={
           transitioning
@@ -694,26 +669,20 @@ function ListPage() {
           </p>
         )}
 
-
         {error && (
           <p className="status error">
             {error}
           </p>
         )}
 
-
         {!resultsLoading &&
           !error &&
-          displayedCocktails.length >
-            0 && (
+          displayedCocktails.length > 0 && (
             <>
               {query.trim() ? (
                 <p className="result-count">
-                  {
-                    displayedCocktails.length
-                  }{" "}
-                  {displayedCocktails.length ===
-                  1
+                  {displayedCocktails.length}{" "}
+                  {displayedCocktails.length === 1
                     ? "cocktail"
                     : "cocktails"}{" "}
                   found
@@ -724,18 +693,13 @@ function ListPage() {
                 </p>
               )}
 
-
               {viewMode === "list" ? (
                 <div className="cocktail-list">
                   {displayedCocktails.map(
                     (cocktail) => (
                       <CocktailListItem
-                        key={
-                          cocktail.idDrink
-                        }
-                        cocktail={
-                          cocktail
-                        }
+                        key={cocktail.idDrink}
+                        cocktail={cocktail}
                         navigationList={
                           displayedCocktails
                         }
@@ -753,12 +717,8 @@ function ListPage() {
                   {displayedCocktails.map(
                     (cocktail) => (
                       <CocktailCard
-                        key={
-                          cocktail.idDrink
-                        }
-                        cocktail={
-                          cocktail
-                        }
+                        key={cocktail.idDrink}
+                        cocktail={cocktail}
                         navigationList={
                           displayedCocktails
                         }
@@ -775,11 +735,9 @@ function ListPage() {
             </>
           )}
 
-
         {!resultsLoading &&
           !error &&
-          displayedCocktails.length ===
-            0 && (
+          displayedCocktails.length === 0 && (
             <div className="empty-state">
               <h2>
                 No cocktails found
