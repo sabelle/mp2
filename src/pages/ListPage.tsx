@@ -15,12 +15,14 @@ import CocktailListItem from "../components/CocktailListItem";
 import CocktailCard from "../components/CocktailCard";
 
 import {
-  getCategories,
   getRandomCocktail,
   searchCocktails,
 } from "../services/cocktailApi";
 
-import type { Cocktail } from "../types/Cocktail";
+import {
+  COCKTAIL_CATEGORIES,
+  type Cocktail,
+} from "../types/Cocktail";
 
 
 type SortProperty = "name" | "category";
@@ -134,9 +136,6 @@ function ListPage() {
 
   const [randomCocktails, setRandomCocktails] =
     useState<Cocktail[]>([]);
-
-  const [categories, setCategories] =
-    useState<string[]>([]);
 
   const [loading, setLoading] =
     useState(false);
@@ -341,8 +340,7 @@ function ListPage() {
           setLoading(true);
           setError("");
 
-          const results =
-            await searchCocktails(query);
+          const results = await searchCocktails(query);
 
           setCocktails(results);
         } catch {
@@ -362,24 +360,6 @@ function ListPage() {
   }, [query]);
 
 
-  /* Load category options for the filter. */
-
-  useEffect(() => {
-    async function loadCategories() {
-      try {
-        const results =
-          await getCategories();
-
-        setCategories(results);
-      } catch {
-        setError(
-          "Unable to load cocktail categories."
-        );
-      }
-    }
-
-    loadCategories();
-  }, []);
 
 
   /* Show search results when searching, otherwise show random drinks. */
@@ -608,7 +588,7 @@ function ListPage() {
                 value: "",
                 label: "All categories",
                 },
-                ...categories.map(
+                ...COCKTAIL_CATEGORIES.map(
                 (category) => ({
                     value: category,
                     label: category,
