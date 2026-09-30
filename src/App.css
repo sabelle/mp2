@@ -227,7 +227,7 @@
 .toolbar-secondary {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
 
   margin-bottom: 28px;
 
@@ -239,8 +239,7 @@
 }
 
 .control-group {
-  display: grid;
-  grid-template-columns: 70px 190px;
+  display: flex;
   align-items: center;
   gap: 9px;
 }
@@ -255,10 +254,10 @@
 }
 
 .control-group select {
-  width: 190px;
+  width: 170px;
   min-height: 40px;
 
-  padding: 8px 44px 8px 12px;
+  padding: 8px 12px;
 
   background-color: #ffffff;
   color: #302a26;
@@ -759,6 +758,7 @@
   }
 
   .control-group {
+    display: grid;
     grid-template-columns: 70px 1fr;
 
     width: 100%;
@@ -766,7 +766,6 @@
 
   .control-group select {
     width: 100%;
-    max-width: none;
   }
 
 

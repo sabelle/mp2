@@ -9,12 +9,13 @@ import {
   useSearchParams,
 } from "react-router-dom";
 
+import PageHeader from "../components/PageHeader";
 import CocktailListItem from "../components/CocktailListItem";
 import CocktailCard from "../components/CocktailCard";
-import PageHeader from "../components/PageHeader";
 
 import {
   getCategories,
+  getRandomCocktail,
   searchCocktails,
 } from "../services/cocktailApi";
 
@@ -145,11 +146,17 @@ function ListPage() {
   const [cocktails, setCocktails] =
     useState<Cocktail[]>([]);
 
+  const [randomCocktails, setRandomCocktails] =
+    useState<Cocktail[]>([]);
+
   const [categories, setCategories] =
     useState<string[]>([]);
 
   const [loading, setLoading] =
     useState(false);
+
+  const [randomLoading, setRandomLoading] =
+    useState(true);
 
   const [error, setError] =
     useState("");
@@ -157,13 +164,11 @@ function ListPage() {
   const [transitioning, setTransitioning] =
     useState(false);
 
-  const [pageTransitioning, setPageTransitioning] =
-    useState(false);
+  const [
+    pageTransitioning,
+    setPageTransitioning,
+  ] = useState(false);
 
-
-  /* =========================================
-     SEARCH STATE
-  ========================================= */
 
   const query =
     searchParams.get("q") ?? "";
@@ -181,15 +186,14 @@ function ListPage() {
   const selectedCategory =
     searchParams.get("category") ?? "";
 
+  const selectedAlcoholic =
+    searchParams.get("alcoholic") ?? "";
+
   const viewMode: ViewMode =
     searchParams.get("view") === "gallery"
       ? "gallery"
       : "list";
 
-
-  /* =========================================
-     UPDATE SEARCH STATE
-  ========================================= */
 
   function updateSearchParams(
     updates: Record<string, string>
@@ -216,10 +220,6 @@ function ListPage() {
   }
 
 
-  /* =========================================
-     TRANSITION SEARCH STATE
-  ========================================= */
-
   async function transitionSearchParams(
     updates: Record<string, string>
   ) {
@@ -235,10 +235,6 @@ function ListPage() {
   }
 
 
-  /* =========================================
-     DETAIL NAVIGATION
-  ========================================= */
-
   async function openCocktail(
     cocktail: Cocktail
   ) {
@@ -248,24 +244,78 @@ function ListPage() {
       setTimeout(resolve, 200)
     );
 
+    const search =
+      searchParams.toString();
+
     navigate({
       pathname:
         `/cocktails/${cocktail.idDrink}`,
       search:
-        searchParams.toString(),
+        search
+          ? `?${search}`
+          : "",
     });
   }
 
 
-  /* =========================================
-     SEARCH
-  ========================================= */
+  /* Load random cocktails once */
+
+  useEffect(() => {
+    async function loadRandomCocktails() {
+      try {
+        setRandomLoading(true);
+
+        const requests =
+          Array.from(
+            { length: 6 },
+            () => getRandomCocktail()
+          );
+
+        const results =
+          await Promise.all(requests);
+
+        const validCocktails =
+          results.filter(
+            (
+              cocktail
+            ): cocktail is Cocktail =>
+              cocktail !== null
+          );
+
+        const uniqueCocktails =
+          Array.from(
+            new Map(
+              validCocktails.map(
+                (cocktail) => [
+                  cocktail.idDrink,
+                  cocktail,
+                ]
+              )
+            ).values()
+          );
+
+        setRandomCocktails(
+          uniqueCocktails
+        );
+      } catch {
+        setError(
+          "Unable to load cocktail suggestions."
+        );
+      } finally {
+        setRandomLoading(false);
+      }
+    }
+
+    loadRandomCocktails();
+  }, []);
+
+
+  /* Search cocktails */
 
   useEffect(() => {
     if (!query.trim()) {
       setCocktails([]);
       setLoading(false);
-      setError("");
 
       return;
     }
@@ -297,9 +347,7 @@ function ListPage() {
   }, [query]);
 
 
-  /* =========================================
-     LOAD CATEGORIES
-  ========================================= */
+  /* Load categories */
 
   useEffect(() => {
     async function loadCategories() {
@@ -319,20 +367,40 @@ function ListPage() {
   }, []);
 
 
-  /* =========================================
-     FILTER + SORT
-  ========================================= */
+  /*
+   * Use search results when there is a query.
+   * Otherwise use the random home-page cocktails.
+   */
+
+  const sourceCocktails =
+    query.trim()
+      ? cocktails
+      : randomCocktails;
+
+
+  /* Filter and sort */
 
   const displayedCocktails =
     useMemo(() => {
       const filtered =
-        selectedCategory
-          ? cocktails.filter(
-              (cocktail) =>
-                cocktail.strCategory ===
-                selectedCategory
-            )
-          : cocktails;
+        sourceCocktails.filter(
+          (cocktail) => {
+            const matchesCategory =
+              !selectedCategory ||
+              cocktail.strCategory ===
+                selectedCategory;
+
+            const matchesAlcoholic =
+              !selectedAlcoholic ||
+              cocktail.strAlcoholic ===
+                selectedAlcoholic;
+
+            return (
+              matchesCategory &&
+              matchesAlcoholic
+            );
+          }
+        );
 
       return [...filtered].sort(
         (a, b) => {
@@ -359,8 +427,9 @@ function ListPage() {
         }
       );
     }, [
-      cocktails,
+      sourceCocktails,
       selectedCategory,
+      selectedAlcoholic,
       sortProperty,
       sortOrder,
     ]);
@@ -376,6 +445,12 @@ function ListPage() {
   }
 
 
+  const resultsLoading =
+    query.trim()
+      ? loading
+      : randomLoading;
+
+
   return (
     <main
       className={
@@ -385,7 +460,8 @@ function ListPage() {
       }
     >
       <PageHeader />
-      
+
+
       <div className="toolbar-primary">
         <input
           className="search-input"
@@ -522,6 +598,36 @@ function ListPage() {
             )}
           </select>
         </div>
+
+
+        <div className="control-group">
+          <label htmlFor="alcoholic-filter">
+            Type:
+          </label>
+
+          <select
+            id="alcoholic-filter"
+            value={selectedAlcoholic}
+            onChange={(event) =>
+              transitionSearchParams({
+                alcoholic:
+                  event.target.value,
+              })
+            }
+          >
+            <option value="">
+              All types
+            </option>
+
+            <option value="Alcoholic">
+              Alcoholic
+            </option>
+
+            <option value="Non alcoholic">
+              Non alcoholic
+            </option>
+          </select>
+        </div>
       </div>
 
 
@@ -532,24 +638,11 @@ function ListPage() {
             : "results-area"
         }
       >
-        {!query.trim() && (
-          <div className="empty-state">
-            <h2>
-              Search for a cocktail
-            </h2>
-
-            <p>
-              Start typing a cocktail
-              name above to see matching
-              drinks.
-            </p>
-          </div>
-        )}
-
-
-        {loading && query.trim() && (
+        {resultsLoading && (
           <p className="status">
-            Searching cocktails...
+            {query.trim()
+              ? "Searching cocktails..."
+              : "Finding cocktails for you..."}
           </p>
         )}
 
@@ -561,22 +654,28 @@ function ListPage() {
         )}
 
 
-        {!loading &&
+        {!resultsLoading &&
           !error &&
-          query.trim() &&
           displayedCocktails.length >
             0 && (
             <>
-              <p className="result-count">
-                {
-                  displayedCocktails.length
-                }{" "}
-                {displayedCocktails.length ===
-                1
-                  ? "cocktail"
-                  : "cocktails"}{" "}
-                found
-              </p>
+              {query.trim() ? (
+                <p className="result-count">
+                  {
+                    displayedCocktails.length
+                  }{" "}
+                  {displayedCocktails.length ===
+                  1
+                    ? "cocktail"
+                    : "cocktails"}{" "}
+                  found
+                </p>
+              ) : (
+                <p className="result-count">
+                  Explore these cocktails
+                </p>
+              )}
+
 
               {viewMode === "list" ? (
                 <div className="cocktail-list">
@@ -629,9 +728,8 @@ function ListPage() {
           )}
 
 
-        {!loading &&
+        {!resultsLoading &&
           !error &&
-          query.trim() &&
           displayedCocktails.length ===
             0 && (
             <div className="empty-state">
@@ -640,8 +738,9 @@ function ListPage() {
               </h2>
 
               <p>
-                Try a different search
-                or category.
+                {query.trim()
+                  ? "Try a different search or filter."
+                  : "Try changing your filters."}
               </p>
             </div>
           )}
