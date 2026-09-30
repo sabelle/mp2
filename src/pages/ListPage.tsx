@@ -262,6 +262,30 @@ function ListPage() {
 
   useEffect(() => {
     async function loadRandomCocktails() {
+      const stored =
+        sessionStorage.getItem(
+          "randomCocktails"
+        );
+
+      if (stored) {
+        try {
+          const savedCocktails =
+            JSON.parse(stored) as Cocktail[];
+
+          setRandomCocktails(
+            savedCocktails
+          );
+
+          setRandomLoading(false);
+
+          return;
+        } catch {
+          sessionStorage.removeItem(
+            "randomCocktails"
+          );
+        }
+      }
+
       try {
         setRandomLoading(true);
 
@@ -296,6 +320,13 @@ function ListPage() {
 
         setRandomCocktails(
           uniqueCocktails
+        );
+
+        sessionStorage.setItem(
+          "randomCocktails",
+          JSON.stringify(
+            uniqueCocktails
+          )
         );
       } catch {
         setError(
@@ -404,26 +435,43 @@ function ListPage() {
 
       return [...filtered].sort(
         (a, b) => {
-          let first: string;
-          let second: string;
+          const nameComparison =
+            a.strDrink.localeCompare(
+              b.strDrink
+            );
 
+          /*
+           * Ascending / descending always
+           * controls cocktail name order.
+           */
           if (sortProperty === "name") {
-            first = a.strDrink;
-            second = b.strDrink;
-          } else {
-            first =
-              a.strCategory ?? "";
-
-            second =
-              b.strCategory ?? "";
+            return sortOrder === "asc"
+              ? nameComparison
+              : -nameComparison;
           }
 
-          const comparison =
-            first.localeCompare(second);
+          /*
+           * When sorting by category,
+           * category is the primary sort.
+           * Cocktails within each category
+           * are sorted by name.
+           */
+          const categoryComparison =
+            (
+              a.strCategory ?? ""
+            ).localeCompare(
+              b.strCategory ?? ""
+            );
+
+          if (
+            categoryComparison !== 0
+          ) {
+            return categoryComparison;
+          }
 
           return sortOrder === "asc"
-            ? comparison
-            : -comparison;
+            ? nameComparison
+            : -nameComparison;
         }
       );
     }, [
