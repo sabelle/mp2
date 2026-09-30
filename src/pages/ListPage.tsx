@@ -9,6 +9,7 @@ import {
   useSearchParams,
 } from "react-router-dom";
 
+import Dropdown from "../components/Dropdown";
 import PageHeader from "../components/PageHeader";
 import CocktailListItem from "../components/CocktailListItem";
 import CocktailCard from "../components/CocktailCard";
@@ -568,89 +569,89 @@ function ListPage() {
 
       <div className="toolbar-secondary">
         <div className="control-group">
-          <label htmlFor="sort-property">
+            <label htmlFor="sort-property">
             Sort by:
-          </label>
+            </label>
 
-          <select
+            <Dropdown
             id="sort-property"
             value={sortProperty}
-            onChange={(event) =>
-              transitionSearchParams({
-                sort:
-                  event.target.value,
-              })
+            options={[
+                {
+                value: "name",
+                label: "Name",
+                },
+                {
+                value: "category",
+                label: "Category",
+                },
+            ]}
+            onChange={(value) =>
+                transitionSearchParams({
+                sort: value,
+                })
             }
-          >
-            <option value="name">
-              Name
-            </option>
-
-            <option value="category">
-              Category
-            </option>
-          </select>
+            />
         </div>
 
-        <div className="control-group">
-          <label htmlFor="category-filter">
-            Filter by:
-          </label>
 
-          <select
+        <div className="control-group">
+            <label htmlFor="category-filter">
+            Filter by:
+            </label>
+
+            <Dropdown
             id="category-filter"
             value={selectedCategory}
-            onChange={(event) =>
-              transitionSearchParams({
-                category:
-                  event.target.value,
-              })
+            options={[
+                {
+                value: "",
+                label: "All categories",
+                },
+                ...categories.map(
+                (category) => ({
+                    value: category,
+                    label: category,
+                })
+                ),
+            ]}
+            onChange={(value) =>
+                transitionSearchParams({
+                category: value,
+                })
             }
-          >
-            <option value="">
-              All categories
-            </option>
-
-            {categories.map(
-              (category) => (
-                <option
-                  key={category}
-                  value={category}
-                >
-                  {category}
-                </option>
-              )
-            )}
-          </select>
+            />
         </div>
 
-        <div className="control-group">
-          <label htmlFor="alcoholic-filter">
-            Type:
-          </label>
 
-          <select
+        <div className="control-group">
+            <label htmlFor="alcoholic-filter">
+            Type:
+            </label>
+
+            <Dropdown
             id="alcoholic-filter"
             value={selectedAlcoholic}
-            onChange={(event) =>
-              transitionSearchParams({
-                alcoholic:
-                  event.target.value,
-              })
+            options={[
+                {
+                value: "",
+                label: "All types",
+                },
+                {
+                value: "Alcoholic",
+                label: "Alcoholic",
+                },
+                {
+                value: "Non alcoholic",
+                label: "Non alcoholic",
+                },
+            ]}
+            onChange={(value) =>
+                transitionSearchParams({
+                alcoholic: value,
+                })
             }
-          >
-            <option value="">
-              All types
-            </option>
-
-            <option value="Alcoholic">
-              Alcoholic
-            </option>
-
-            <option value="Non alcoholic">
-              Non alcoholic
-            </option>
-          </select>
+            />
         </div>
       </div>
 
